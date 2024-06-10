@@ -1,11 +1,11 @@
-#define _CRT_SECURE_NO_WARNINGS
-#include<Windows.h>		//<file> - компилятор будет искать file в системных каталогах Visual Studio
+п»ї#define _CRT_SECURE_NO_WARNINGS
+#include<Windows.h>		//<file> - РєРѕРјРїРёР»СЏС‚РѕСЂ Р±СѓРґРµС‚ РёСЃРєР°С‚СЊ file РІ СЃРёСЃС‚РµРјРЅС‹С… РєР°С‚Р°Р»РѕРіР°С… Visual Studio
 #include<CommCtrl.h>
 #include<cstdio>
-#include"resource.h"	//"file" - компилятор будет искать file сначала в каталоге с проектом, а потом в системных каталогах Visual Studio
+#include"resource.h"	//"file" - РєРѕРјРїРёР»СЏС‚РѕСЂ Р±СѓРґРµС‚ РёСЃРєР°С‚СЊ file СЃРЅР°С‡Р°Р»Р° РІ РєР°С‚Р°Р»РѕРіРµ СЃ РїСЂРѕРµРєС‚РѕРј, Р° РїРѕС‚РѕРј РІ СЃРёСЃС‚РµРјРЅС‹С… РєР°С‚Р°Р»РѕРіР°С… Visual Studio
 
 BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
+DWORD CreateMaskFromPrefix(INT prefix);
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, INT nCmdShow)
 {
 	DialogBoxParam(hInstance, MAKEINTRESOURCE(IDD_DIALOG1), NULL, (DLGPROC)DlgProc, 0);
@@ -21,6 +21,13 @@ BOOL CheckMask(DWORD mask)
 	}
 	return TRUE;
 }
+
+DWORD CreateMaskFromPrefix(INT prefix)
+{
+	if (prefix <= 0 || prefix > 32) return 0;
+	return (DWORD)(~0) << (32 - prefix);
+}
+
 INT CountOnes(DWORD mask)
 {
 	INT zero_bits = 0;
@@ -36,17 +43,17 @@ INT CountOnes(DWORD mask)
 	return 32 - zero_bits;
 }
 
-//Процедура окна - это самая обычная функция, которая вызывается при запуске окна.
+//РџСЂРѕС†РµРґСѓСЂР° РѕРєРЅР° - СЌС‚Рѕ СЃР°РјР°СЏ РѕР±С‹С‡РЅР°СЏ С„СѓРЅРєС†РёСЏ, РєРѕС‚РѕСЂР°СЏ РІС‹Р·С‹РІР°РµС‚СЃСЏ РїСЂРё Р·Р°РїСѓСЃРєРµ РѕРєРЅР°.
 BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	//Все принимаемые параметры - это числовые значения длиной 4 Байта.
-	//HWND - Handler to Window (обработчик окна) - это число, которое идентифицирует окно.
-	//Любые обращения к окну можно выполнить только через его обработчик.
-	//uMsg  (Message) - сообщение, которое отправляется окну.
-	//wParam, lParam - параметры сообщения. Они еще делятся на LOWORD и HIWORD.
-	//LOWORD - это младшее слово.
-	//HIWORD - старшее слово.
-	//WORD (Слово) - это два Байта.
+	//Р’СЃРµ РїСЂРёРЅРёРјР°РµРјС‹Рµ РїР°СЂР°РјРµС‚СЂС‹ - СЌС‚Рѕ С‡РёСЃР»РѕРІС‹Рµ Р·РЅР°С‡РµРЅРёСЏ РґР»РёРЅРѕР№ 4 Р‘Р°Р№С‚Р°.
+	//HWND - Handler to Window (РѕР±СЂР°Р±РѕС‚С‡РёРє РѕРєРЅР°) - СЌС‚Рѕ С‡РёСЃР»Рѕ, РєРѕС‚РѕСЂРѕРµ РёРґРµРЅС‚РёС„РёС†РёСЂСѓРµС‚ РѕРєРЅРѕ.
+	//Р›СЋР±С‹Рµ РѕР±СЂР°С‰РµРЅРёСЏ Рє РѕРєРЅСѓ РјРѕР¶РЅРѕ РІС‹РїРѕР»РЅРёС‚СЊ С‚РѕР»СЊРєРѕ С‡РµСЂРµР· РµРіРѕ РѕР±СЂР°Р±РѕС‚С‡РёРє.
+	//uMsg  (Message) - СЃРѕРѕР±С‰РµРЅРёРµ, РєРѕС‚РѕСЂРѕРµ РѕС‚РїСЂР°РІР»СЏРµС‚СЃСЏ РѕРєРЅСѓ.
+	//wParam, lParam - РїР°СЂР°РјРµС‚СЂС‹ СЃРѕРѕР±С‰РµРЅРёСЏ. РћРЅРё РµС‰Рµ РґРµР»СЏС‚СЃСЏ РЅР° LOWORD Рё HIWORD.
+	//LOWORD - СЌС‚Рѕ РјР»Р°РґС€РµРµ СЃР»РѕРІРѕ.
+	//HIWORD - СЃС‚Р°СЂС€РµРµ СЃР»РѕРІРѕ.
+	//WORD (РЎР»РѕРІРѕ) - СЌС‚Рѕ РґРІР° Р‘Р°Р№С‚Р°.
 	int a = 2;
 	{
 		int a = 2;
@@ -56,7 +63,7 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_INITDIALOG:
 	{
 		HWND hUpDown = GetDlgItem(hwnd, IDC_SPIN_PREFIX);
-		//Функция GetDlgItem() получает HWND элемента интерфейса по его ID
+		//Р¤СѓРЅРєС†РёСЏ GetDlgItem() РїРѕР»СѓС‡Р°РµС‚ HWND СЌР»РµРјРµРЅС‚Р° РёРЅС‚РµСЂС„РµР№СЃР° РїРѕ РµРіРѕ ID
 		SendMessage(hUpDown, UDM_SETRANGE32, 0, 32);
 
 		HWND hIPaddress = GetDlgItem(hwnd, IDC_IPADDRESS);
@@ -75,15 +82,15 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			HWND hIPaddress = GetDlgItem(hwnd, IDC_IPADDRESS);
 			HWND hStaticInfo = GetDlgItem(hwnd, IDC_STATIC_INFO);
 			HWND hEditPrefix = GetDlgItem(hwnd, IDC_EDIT_PREFIX);
-			//EN_ - Edit notification (Уведомление)
+			//EN_ - Edit notification (РЈРІРµРґРѕРјР»РµРЅРёРµ)
 			if (HIWORD(wParam) == EN_CHANGE)
 			{
 				//BYTE = 8 bit;		CHAR
 				//WORD = 2 Bytes (16 bit);	SHORT
-				//DWORD (Double Word - Двойное слоово) = 4 Bytes (32 bit)	INT
-				//QWORD (Quad Word - Учетверенное слово) = 8 Bytes (64 bit)	LONG LONG
-				//TBYTE (Ten Bytes - Десять Байт) = 80 bit;
-				//DQWORD (Double Quad Word - Двойное учетверенное слово) = 128 bit;
+				//DWORD (Double Word - Р”РІРѕР№РЅРѕРµ СЃР»РѕРѕРІРѕ) = 4 Bytes (32 bit)	INT
+				//QWORD (Quad Word - РЈС‡РµС‚РІРµСЂРµРЅРЅРѕРµ СЃР»РѕРІРѕ) = 8 Bytes (64 bit)	LONG LONG
+				//TBYTE (Ten Bytes - Р”РµСЃСЏС‚СЊ Р‘Р°Р№С‚) = 80 bit;
+				//DQWORD (Double Quad Word - Р”РІРѕР№РЅРѕРµ СѓС‡РµС‚РІРµСЂРµРЅРЅРѕРµ СЃР»РѕРІРѕ) = 128 bit;
 				DWORD dw_address;
 				SendMessage(hIPaddress, IPM_GETADDRESS, 0, (LPARAM)&dw_address);
 				INT first = FIRST_IPADDRESS(dw_address);
@@ -111,7 +118,7 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			//	DWORD dw_mask = 0;
 			//	SendMessage(hIPmask, IPM_GETADDRESS, 0, (LPARAM)&dw_mask);
 			//	INT prefix = CountOnes(dw_mask);
-			//	CHAR sz_prefix[3] = {};	//sz_ - string zero (строка, заканчивающаяся нулем)
+			//	CHAR sz_prefix[3] = {};	//sz_ - string zero (СЃС‚СЂРѕРєР°, Р·Р°РєР°РЅС‡РёРІР°СЋС‰Р°СЏСЃСЏ РЅСѓР»РµРј)
 			//	sprintf(sz_prefix, "%i", prefix);
 			//	SendMessage(hEditPrefix, WM_SETTEXT, 0, (LPARAM)sz_prefix);
 			//	//SendMessage(hIPmask, IPM_SETADDRESS, 0, dw_mask >> (32 - prefix) << (32 - prefix));
@@ -126,23 +133,24 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			DWORD dw_mask = ~0;
 			if (HIWORD(wParam) == EN_CHANGE)
 			{
-				CONST INT SIZE = 8;
+				CONST INT SIZE = 3;
 				CHAR sz_buffer[SIZE];
 				SendMessage(hEditPrefix, WM_GETTEXT, SIZE, (LPARAM)sz_buffer);
 				//MessageBox(hwnd, sz_buffer, "Prefix", MB_OK | MB_ICONINFORMATION);
-				INT shift = atoi(sz_buffer);
+				INT prefix = atoi(sz_buffer);
 				//	  2 + 3;
-				//dw_mask >>= (32 - shift);	//Функция atoi() преобразует ASCII-строку в значение типа 'int'
+				//dw_mask >>= (32 - shift);	//Р¤СѓРЅРєС†РёСЏ atoi() РїСЂРµРѕР±СЂР°Р·СѓРµС‚ ASCII-СЃС‚СЂРѕРєСѓ РІ Р·РЅР°С‡РµРЅРёРµ С‚РёРїР° 'int'
 				//dw_mask <<= (32 - shift);
 				//SendMessage(hIPmask, IPM_SETADDRESS, 0, dw_mask);
-				SendMessage(hIPmask, IPM_SETADDRESS, 0, dw_mask >> (32 - shift) << (32 - shift));
+				DWORD dw_mask = CreateMaskFromPrefix(prefix);
+				SendMessage(GetDlgItem(hwnd, IDC_IPMASK), IPM_SETADDRESS, 0, (LPARAM)dw_mask);
 			}
 		}
 		break;
-		case IDOK: MessageBox(hwnd, "Была нажата кнопка OK", "Info", MB_OK | MB_ICONINFORMATION); break;
+		case IDOK: MessageBox(hwnd, "Р‘С‹Р»Р° РЅР°Р¶Р°С‚Р° РєРЅРѕРїРєР° OK", "Info", MB_OK | MB_ICONINFORMATION); break;
 			//	MB_OK | MB_ICONINFORMATION - MB_OK or MB_ICONINFORMATION
-			// || - логическое 'OR'
-			// |  - побитовое  'OR'
+			// || - Р»РѕРіРёС‡РµСЃРєРѕРµ 'OR'
+			// |  - РїРѕР±РёС‚РѕРІРѕРµ  'OR'
 		case IDCANCEL: EndDialog(hwnd, 0); break;
 		}
 		break;
