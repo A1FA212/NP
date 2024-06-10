@@ -1,8 +1,8 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include <Windows.h>
-#include <CommCtrl.h>
-#include "resource.h"
-#include <cstdio>
+#include<Windows.h>		//<file> - компилятор будет искать file в системных каталогах Visual Studio
+#include<CommCtrl.h>
+#include<cstdio>
+#include"resource.h"	//"file" - компилятор будет искать file сначала в каталоге с проектом, а потом в системных каталогах Visual Studio
 
 BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -10,6 +10,30 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, IN
 {
 	DialogBoxParam(hInstance, MAKEINTRESOURCE(IDD_DIALOG1), NULL, (DLGPROC)DlgProc, 0);
 	return 0;
+}
+
+BOOL CheckMask(DWORD mask)
+{
+	//DWORD pattern = 1 << 32;
+	for (int i = 0; i < 32; i++)
+	{
+
+	}
+	return TRUE;
+}
+INT CountOnes(DWORD mask)
+{
+	INT zero_bits = 0;
+	DWORD power;
+	for (int i = 1; i; i <<= 1, zero_bits++)
+	{
+		if (mask & i)
+		{
+			power = i;
+			break;
+		}
+	}
+	return 32 - zero_bits;
 }
 
 //Процедура окна - это самая обычная функция, которая вызывается при запуске окна.
@@ -34,8 +58,9 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		HWND hUpDown = GetDlgItem(hwnd, IDC_SPIN_PREFIX);
 		//Функция GetDlgItem() получает HWND элемента интерфейса по его ID
 		SendMessage(hUpDown, UDM_SETRANGE32, 0, 32);
-		HWND hIPadress = GetDlgItem(hwnd, IDC_IPADDRESS);
-		SetFocus(hIPadress);
+
+		HWND hIPaddress = GetDlgItem(hwnd, IDC_IPADDRESS);
+		SetFocus(hIPaddress);
 	}
 	break;
 	case WM_COMMAND:
@@ -49,6 +74,7 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 			HWND hIPaddress = GetDlgItem(hwnd, IDC_IPADDRESS);
 			HWND hStaticInfo = GetDlgItem(hwnd, IDC_STATIC_INFO);
+			HWND hEditPrefix = GetDlgItem(hwnd, IDC_EDIT_PREFIX);
 			//EN_ - Edit notification (Уведомление)
 			if (HIWORD(wParam) == EN_CHANGE)
 			{
@@ -67,6 +93,49 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 				sprintf_s(sz_info, SIZE, "Info:\nFirst: %i, Second: %i, Third: %i, Forth: %i", first, second, third, fourth);
 				SendMessage(hStaticInfo, WM_SETTEXT, 0, (LPARAM)sz_info);
+
+				////////////////////////////////////////////////////////////////////////////////
+
+				if (first < 128)SendMessage(hEditPrefix, WM_SETTEXT, 0, (LPARAM)"8");
+				else if (first < 192)SendMessage(hEditPrefix, WM_SETTEXT, 0, (LPARAM)"16");
+				else if (first < 224)SendMessage(hEditPrefix, WM_SETTEXT, 0, (LPARAM)"24");
+			}
+		}
+		break;
+		case IDC_IPMASK:
+		{
+			//if (HIWORD(wParam) == EN_CHANGE)
+			//{
+			//	HWND hIPmask = GetDlgItem(hwnd, IDC_IPMASK);
+			//	HWND hEditPrefix = GetDlgItem(hwnd, IDC_EDIT_PREFIX);
+			//	DWORD dw_mask = 0;
+			//	SendMessage(hIPmask, IPM_GETADDRESS, 0, (LPARAM)&dw_mask);
+			//	INT prefix = CountOnes(dw_mask);
+			//	CHAR sz_prefix[3] = {};	//sz_ - string zero (строка, заканчивающаяся нулем)
+			//	sprintf(sz_prefix, "%i", prefix);
+			//	SendMessage(hEditPrefix, WM_SETTEXT, 0, (LPARAM)sz_prefix);
+			//	//SendMessage(hIPmask, IPM_SETADDRESS, 0, dw_mask >> (32 - prefix) << (32 - prefix));
+			//}
+		}
+		break;
+		case IDC_EDIT_PREFIX:
+		{
+			HWND hEditPrefix = GetDlgItem(hwnd, IDC_EDIT_PREFIX);
+			HWND hIPmask = GetDlgItem(hwnd, IDC_IPMASK);
+			//DWORD dw_mask = UINT_MAX;
+			DWORD dw_mask = ~0;
+			if (HIWORD(wParam) == EN_CHANGE)
+			{
+				CONST INT SIZE = 8;
+				CHAR sz_buffer[SIZE];
+				SendMessage(hEditPrefix, WM_GETTEXT, SIZE, (LPARAM)sz_buffer);
+				//MessageBox(hwnd, sz_buffer, "Prefix", MB_OK | MB_ICONINFORMATION);
+				INT shift = atoi(sz_buffer);
+				//	  2 + 3;
+				//dw_mask >>= (32 - shift);	//Функция atoi() преобразует ASCII-строку в значение типа 'int'
+				//dw_mask <<= (32 - shift);
+				//SendMessage(hIPmask, IPM_SETADDRESS, 0, dw_mask);
+				SendMessage(hIPmask, IPM_SETADDRESS, 0, dw_mask >> (32 - shift) << (32 - shift));
 			}
 		}
 		break;
@@ -77,6 +146,27 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case IDCANCEL: EndDialog(hwnd, 0); break;
 		}
 		break;
+	case WM_NOTIFY:
+	{
+		HWND hIPmask = GetDlgItem(hwnd, IDC_IPMASK);
+		HWND hEditPrefix = GetDlgItem(hwnd, IDC_EDIT_PREFIX);
+		switch (wParam)
+		{
+		case IDC_IPMASK:
+		{
+			DWORD dw_mask = 0;
+			SendMessage(hIPmask, IPM_GETADDRESS, 0, (LPARAM)&dw_mask);
+			int i = 32;
+			for (; dw_mask & 1 ^ 1; i--)dw_mask >>= 1;
+			CHAR sz_prefix[5]{};
+			sprintf(sz_prefix, "%i", i);
+			SendMessage(hEditPrefix, WM_SETTEXT, 0, (LPARAM)sz_prefix);
+		}
+		break;
+		}
+		break;
+	}
+	break;
 	case WM_CLOSE:
 		EndDialog(hwnd, 0);
 		break;
